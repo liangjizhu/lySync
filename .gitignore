@@ -1,0 +1,37 @@
+# Python
+.venv/
+.venv-*/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+pip-wheel-metadata/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# lySync runtime
+~/.config/lysync/
+
+# Node / Electron
+frontend/node_modules/
+frontend/out/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Whisper model cache (large)
+.cache/lysync/

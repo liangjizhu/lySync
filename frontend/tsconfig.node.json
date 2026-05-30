@@ -1,0 +1,14 @@
+{
+  "include": ["electron.vite.config.*", "electron/**/*"],
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "out",
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  }
+}

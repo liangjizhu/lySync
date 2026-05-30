@@ -1,0 +1,31 @@
+[project]
+name = "lysync-backend"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.136.3",
+    "uvicorn[standard]==0.48.0",
+    "httpx==0.28.1",
+    "pydantic==2.13.4",
+    "langdetect==1.0.9",
+    "lingua-language-detector==2.2.0",
+    "deep-translator==1.11.4",
+    "dbus-next==0.2.3",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+stt = [
+    "faster-whisper==1.2.1",
+    "sounddevice==0.5.5",
+    "soundfile==0.13.1",
+]
+windows = ["winsdk>=1.0.0b10"]
+stt-windows = ["pyaudiowpatch"]
+
+[tool.setuptools.packages.find]
+include = ["backend*"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
