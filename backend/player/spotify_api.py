@@ -253,3 +253,30 @@ class SpotifyAPIPlayer(BasePlayer):
                 last_key = key
                 on_track_change(track)
             await asyncio.sleep(2.0)  # Spotify rate limit: ~180 req/min
+
+    async def _control(self, method: str, url: str, **kwargs) -> bool:
+        try:
+            token = await self._get_token()
+            async with httpx.AsyncClient() as client:
+                r = await getattr(client, method)(
+                    url,
+                    headers={"Authorization": f"Bearer {token}"},
+                    timeout=5.0,
+                    **kwargs,
+                )
+                return r.status_code in (200, 204)
+        except Exception:
+            return False
+
+    async def pause(self) -> None:
+        await self._control("put", "https://api.spotify.com/v1/me/player/pause")
+
+    async def seek(self, position_ms: int) -> None:
+        await self._control(
+            "put",
+            "https://api.spotify.com/v1/me/player/seek",
+            params={"position_ms": position_ms},
+        )
+
+    async def resume(self) -> None:
+        await self._control("put", "https://api.spotify.com/v1/me/player/play")

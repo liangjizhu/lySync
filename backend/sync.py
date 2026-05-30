@@ -22,6 +22,7 @@ class SyncEngine:
         # Software clock for position drift
         self._pos_snapshot_ms: int = 0
         self._pos_snapshot_time: float = time.monotonic()
+        self._offset_ms: int = 0
 
     def set_lyrics(self, lines: list[LRCLine]) -> None:
         self._lines = lines
@@ -30,6 +31,10 @@ class SyncEngine:
 
     def set_broadcaster(self, broadcaster) -> None:
         self._broadcaster = broadcaster
+
+    def set_offset(self, offset_ms: int) -> None:
+        self._offset_ms = offset_ms
+        self._current_index = -1  # force re-check on next tick
 
     def update_track(self, track: Optional[TrackInfo]) -> None:
         self._current_track = track
@@ -66,7 +71,7 @@ class SyncEngine:
                 except Exception as e:
                     print(f"[sync] position resync failed: {e}")
 
-            pos_ms = self._estimated_position()
+            pos_ms = self._estimated_position() + self._offset_ms
             debug_tick += 1
             if debug_tick % 20 == 0:  # every 5s
                 print(f"[sync] pos={pos_ms}ms  lines={len(self._lines)}  idx={self._current_index}")

@@ -27,3 +27,12 @@ class BasePlayer(ABC):
     async def watch(self, on_track_change: Callable[[Optional[TrackInfo]], None]) -> None:
         """Subscribe to track-change events. Runs indefinitely."""
         ...
+
+    async def pause(self) -> None:
+        """Pause playback. Optional — not all players support control."""
+
+    async def seek(self, position_ms: int) -> None:
+        """Seek to position. Optional."""
+
+    async def resume(self) -> None:
+        """Resume playback. Optional."""

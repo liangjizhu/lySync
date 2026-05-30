@@ -39,10 +39,7 @@ async def fetch_synced(
                 synced = data.get("syncedLyrics")
                 if synced:
                     return parse_lrc(synced)
-                # Plain lyrics only — return as single unsynchronized block
-                plain = data.get("plainLyrics")
-                if plain:
-                    return [LRCLine(time_ms=0, text=plain)]
+                # Plain lyrics only — no timestamps, useless for sync, skip
         except (httpx.HTTPError, KeyError, ValueError):
             pass
 
@@ -61,4 +58,27 @@ async def fetch_synced(
         except (httpx.HTTPError, KeyError, ValueError):
             pass
 
+    return None
+
+
+async def fetch_plain(
+    artist: str,
+    title: str,
+    album: str = "",
+    duration_s: int = 0,
+) -> Optional[str]:
+    """Return plain (unsynced) lyrics text for use as Whisper hint. None if not found."""
+    async with httpx.AsyncClient(headers=HEADERS, timeout=TIMEOUT) as client:
+        params: dict = {"artist_name": artist, "track_name": title}
+        if album:
+            params["album_name"] = album
+        if duration_s:
+            params["duration"] = duration_s
+        try:
+            r = await client.get(f"{BASE_URL}/get", params=params)
+            if r.status_code == 200:
+                data = r.json()
+                return data.get("plainLyrics") or None
+        except (httpx.HTTPError, KeyError, ValueError):
+            pass
     return None

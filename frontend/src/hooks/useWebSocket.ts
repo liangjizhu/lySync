@@ -70,6 +70,11 @@ export function useWebSocket(): { send: (msg: object) => void } {
           store.setCurrentIndex(p.index, p.text, p.translated_text);
           break;
         }
+        case "audio_sync_status": {
+          const p = msg.payload as { status: string; message: string };
+          store.setAudioSyncStatus(p.status === "done" || p.status === "error" ? null : p);
+          break;
+        }
       }
     }
 

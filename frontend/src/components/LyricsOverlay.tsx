@@ -2,8 +2,13 @@ import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLyricStore } from "../store";
 
-export function LyricsOverlay(): JSX.Element {
-  const { lines, currentIndex, showTranslation, track } = useLyricStore();
+interface Props {
+  send: (msg: object) => void;
+}
+
+export function LyricsOverlay({ send }: Props): JSX.Element {
+  const { lines, currentIndex, showTranslation, track, linesVisible, audioSyncStatus } =
+    useLyricStore();
   const activeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -18,19 +23,48 @@ export function LyricsOverlay(): JSX.Element {
     );
   }
 
+  if (audioSyncStatus) {
+    const isRecording = audioSyncStatus.status === "recording";
+    const isTranscribing = audioSyncStatus.status === "transcribing";
+    return (
+      <div className="overlay-container idle">
+        <div className="sync-status">
+          <span className={`sync-spinner ${isRecording ? "pulse-red" : "pulse-white"}`}>
+            {isRecording ? "🎙" : "⚙"}
+          </span>
+          <span className="sync-status-text">{audioSyncStatus.message}</span>
+          {isRecording && (
+            <div className="sync-progress-bar">
+              <div className="sync-progress-fill" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (lines.length === 0) {
     return (
       <div className="overlay-container idle">
         <span className="idle-text">No lyrics found</span>
+        <button
+          className="sync-audio-btn"
+          onClick={() => send({ type: "start_audio_sync" })}
+        >
+          🎙 Sync with Audio
+        </button>
+        <span className="sync-audio-hint">
+          Restarts song · records {30}s · Whisper required
+        </span>
       </div>
     );
   }
 
   const idx = currentIndex < 0 ? 0 : currentIndex;
-  const BEFORE = 2;
-  const AFTER = 3;
-  const start = Math.max(0, idx - BEFORE);
-  const end = Math.min(lines.length, idx + AFTER + 1);
+  const before = Math.floor((linesVisible - 1) / 2);
+  const after = linesVisible - 1 - before;
+  const start = Math.max(0, idx - before);
+  const end = Math.min(lines.length, idx + after + 1);
   const visible = lines.slice(start, end);
 
   return (
@@ -41,16 +75,14 @@ export function LyricsOverlay(): JSX.Element {
             const i = start + vi;
             const isActive = i === idx && currentIndex >= 0;
             const isPrev = i < idx;
-            const displayText =
-              showTranslation && line.translated_text
-                ? line.translated_text
-                : line.text;
+            const original = line.text;
+            const translation = line.translated_text;
 
             return (
               <motion.div
                 key={`${i}-${line.time_ms}`}
                 ref={isActive ? activeRef : null}
-                className="lyrics-line"
+                className="lyrics-line-wrapper"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{
                   opacity: isActive ? 1 : isPrev ? 0.3 : 0.55,
@@ -61,7 +93,12 @@ export function LyricsOverlay(): JSX.Element {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
               >
-                {displayText || <span className="interlude">♪</span>}
+                <div className="lyrics-line">
+                  {original || <span className="interlude">♪</span>}
+                </div>
+                {showTranslation && translation && (
+                  <div className="lyrics-translation">{translation}</div>
+                )}
               </motion.div>
             );
           })}
